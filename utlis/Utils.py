@@ -24,8 +24,8 @@ def ReadConfig(configfile):
     cfgPath = config['path']
     cfgFeat = config['feature']
     cfgTrain = config['train']
-    cfgModel = config['model']
-    return cfgPath, cfgFeat, cfgTrain, cfgModel
+    # cfgModel = config['model']
+    return cfgPath, cfgFeat, cfgTrain
 
 ##########################################################################################
 # Add context to the origin data and label ###############################################

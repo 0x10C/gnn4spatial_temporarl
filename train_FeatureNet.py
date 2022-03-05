@@ -28,7 +28,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.c = "./config/ISRUC.config"
     args.g = "0"
-    Path, cfgFeature, _, _ = ReadConfig(args.c)
+    Path, cfgFeature, _ = ReadConfig(args.c)
 
     # set GPU number or use CPU only
     os.environ["CUDA_VISIBLE_DEVICES"] = args.g
