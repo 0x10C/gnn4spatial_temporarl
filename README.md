@@ -54,7 +54,10 @@ bash install_package.sh
   + --data_dir: which dir to save experiment logs, model and temporary files. 
 
   ```shell
-  python gnn_experiment.py --model gat --case_name knn --data_dir ./result/ISRUC_S3_knn
+  python gnn_experiment.py --model gat --case_name knn --data_dir ./result/ISRUC_S3_knn/
+  python gnn_experiment.py --model gat --case_name plv --data_dir ./result/ISRUC_S3_plv/
+  python gnn_experiment.py --model gat --case_name distance --data_dir ./result/ISRUC_S3_distance/
+
   ```
 
 

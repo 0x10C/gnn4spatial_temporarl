@@ -11,7 +11,7 @@ from GCN_model.utlis.utils import *
 from utils import *
 
 from DataTransformer import transform
-
+from split_data import run
 
 def add_args(parser):
     """
@@ -20,9 +20,9 @@ def add_args(parser):
     """
     # Training settings
 
-    parser.add_argument('--case_name', type=str, default='knn', help='Dataset used for training')
+    parser.add_argument('--case_name', type=str, default='pcc', help='Dataset used for training')
 
-    parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_knn", help='Data directory')
+    parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_pcc/", help='Data directory')
 
     parser.add_argument('--model', type=str, default='gcn', help='Model name. Currently supports SAGE, GAT and GCN.')
 
@@ -65,7 +65,7 @@ def add_args(parser):
     parser.add_argument('--epochs', type=int, default=5, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--frequency_of_the_test', type=int, default=5, help='How frequently to run eval')
+    parser.add_argument('--frequency_of_the_test', type=int, default=200, help='How frequently to run eval')
 
     parser.add_argument('--device', type=str, default="cuda:0", metavar="DV", help='gpu device for training')
 
@@ -84,7 +84,7 @@ def train_model(args):
     torch.manual_seed(0)
     torch.cuda.manual_seed_all(0)
 
-    path = args.data_dir
+    path = args.data_dir[:-1]
     case_name = args.case_name
 
     epochs = args.epochs
@@ -262,7 +262,6 @@ def train_model(args):
         print("", file=logFile)
         print()
     logFile.close()
-
     np.save(path + "/single_" + args.model + "/history_CM", np.array(history_CM))
     np.save(path + "/single_" + args.model + "/history_test",
             np.array([loss.cpu().detach().numpy() for loss in history_test]))
@@ -321,7 +320,7 @@ if __name__ == '__main__':
         "feature": './output/Feature_1.npz'
     }
     transform(path, args.case_name)
-
+    run(path['save'],args.case_name)
     train_model(args)
 
     # python fed_experiment.py --model gat --case_name knn --data_dir ./result/ISRUC_S3_knn
