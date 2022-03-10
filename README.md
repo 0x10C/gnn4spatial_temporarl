@@ -53,11 +53,21 @@ bash install_package.sh
   + --case_name: which connective function you use. Currently supports distance, knn, pcc and plv.
   + --data_dir: which dir to save experiment logs, model and temporary files. 
 
+    single machine experiment:
+
   ```shell
   python gnn_experiment.py --model gat --case_name knn --data_dir ./result/ISRUC_S3_knn/
   python gnn_experiment.py --model gat --case_name plv --data_dir ./result/ISRUC_S3_plv/
   python gnn_experiment.py --model gat --case_name distance --data_dir ./result/ISRUC_S3_distance/
+  python gnn_experiment.py --model gat --case_name pcc --data_dir ./result/ISRUC_S3_distance/
+  ```
+    multiple machines experiment:
+    
+  ```shell
+  python fed_experiment.py --model gat --case_name knn --data_dir ./result/ISRUC_S3_knn  
+  python fed_experiment.py --model gat --case_name plv --data_dir ./result/ISRUC_S3_plv  
+  python fed_experiment.py --model gat --case_name distance --data_dir ./result/ISRUC_S3_distance  
+  python fed_experiment.py --model gat --case_name pcc --data_dir ./result/ISRUC_S3_pcc  
 
   ```
-
 
