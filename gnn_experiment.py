@@ -12,6 +12,7 @@ from utils import *
 
 from DataTransformer import transform
 from split_data import run
+import pandas as pd
 
 def add_args(parser):
     """
@@ -20,9 +21,9 @@ def add_args(parser):
     """
     # Training settings
 
-    parser.add_argument('--case_name', type=str, default='pcc', help='Dataset used for training')
+    parser.add_argument('--case_name', type=str, default='knn', help='Dataset used for training')
 
-    parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_pcc/", help='Data directory')
+    parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_knn/", help='Data directory')
 
     parser.add_argument('--model', type=str, default='gcn', help='Model name. Currently supports SAGE, GAT and GCN.')
 
@@ -65,7 +66,7 @@ def add_args(parser):
     parser.add_argument('--epochs', type=int, default=5, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--frequency_of_the_test', type=int, default=200, help='How frequently to run eval')
+    parser.add_argument('--frequency_of_the_test', type=int, default=100, help='How frequently to run eval')
 
     parser.add_argument('--device', type=str, default="cuda:0", metavar="DV", help='gpu device for training')
 
@@ -94,7 +95,7 @@ def train_model(args):
     train_adj_matrix = []
     train_feature_matrices = []
     train_labels = None
-
+    frequency_of_the_test = args.frequency_of_the_test
     transformed_path = path + "/single"
     if not os.path.exists(transformed_path):
         print("generate train data")
@@ -206,6 +207,13 @@ def train_model(args):
     best_model = None
     best_f1 = 0
 
+    acc_list = []
+    f1_list = []
+    test_loss_list = []
+    train_loss_list = []
+    batch_list = []
+
+
     for e in range(epochs):
         for mol_idxs in range(int(len(train_loader[0]) / batch_size)):
             participants_loss_train = []
@@ -226,7 +234,7 @@ def train_model(args):
 
             history_train.append(batch_loss)
 
-            if mol_idxs % 5 == 0 or mol_idxs == int(len(train_loader[0]) / batch_size) - 1:
+            if mol_idxs % frequency_of_the_test == 0 or mol_idxs == int(len(train_loader[0]) / batch_size) - 1:
                 global_loss_test = calculate_loss(model=global_model,
                                                   dataloader=iter(test_loader[0]),
                                                   batch_size=batch_size * 8,
@@ -253,6 +261,11 @@ def train_model(args):
                         mol_idxs / int(len(train_loader[0]) / batch_size) * 100))
                 history_test.append(global_loss_test)
                 # print(cm)
+                acc_list.append(acc)
+                f1_list.append(f1)
+                test_loss_list.append(float(global_loss_test))
+                train_loss_list.append(float(participants_loss_train[0]))
+                batch_list.append(mol_idxs)
 
                 history_CM.append(cm)
 
@@ -272,6 +285,11 @@ def train_model(args):
 
     best_model.eval()
     best_model.to(device)
+
+
+    draw_df = pd.DataFrame(dict(batch = batch_list,acc = acc_list,train_loss = train_loss_list,test_loss = test_loss_list,f1 = f1_list))
+    draw_df.to_csv("draw_data/{}_{}.csv".format(args.case_name,args.model),index=False)
+
 
     with torch.no_grad():
         y_pred = []
