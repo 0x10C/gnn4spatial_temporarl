@@ -21,9 +21,9 @@ def add_args(parser):
     """
     # Training settings
 
-    parser.add_argument('--case_name', type=str, default='knn', help='Dataset used for training')
+    parser.add_argument('--case_name', type=str, default='pcc', help='Dataset used for training')
 
-    parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_knn/", help='Data directory')
+    parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_pcc/", help='Data directory')
 
     parser.add_argument('--model', type=str, default='gcn', help='Model name. Currently supports SAGE, GAT and GCN.')
 
