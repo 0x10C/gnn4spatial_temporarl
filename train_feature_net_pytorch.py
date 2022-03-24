@@ -8,7 +8,6 @@ from utlis.Utils import *
 from torch.utils.data import Dataset, DataLoader
 from MlpMixerNet import MLP_Mixer
 from feature_net_lstm import featureNetLSTM
-from vggTransformer import vggTransformer
 from convlstm import ConvLSTM
 from tqdm import  tqdm
 logging.basicConfig(level=logging.DEBUG,
@@ -249,8 +248,6 @@ if __name__ == "__main__":
         feature_net = featureNetLSTM().to(device)
 
 
-        # feature_net = vggTransformer().to(device)
-        #
         # feature_net = ConvLSTM(img_size=100, input_dim=1, hidden_dim=16, kernel_size=3, cnn_dropout=0.2,
         #                        rnn_dropout=0.2, batch_first=True, bias=True, bidirectional=False)
         # feature_net = MLP_Mixer(image_size=3000, patch_size=100, dim=256, num_classes=5, num_blocks=6, token_dim=30,
