@@ -7,6 +7,9 @@ import logging
 from utlis.Utils import *
 from torch.utils.data import Dataset, DataLoader
 from MlpMixerNet import MLP_Mixer
+from feature_net_lstm import featureNetLSTM
+from vggTransformer import vggTransformer
+from convlstm import ConvLSTM
 from tqdm import  tqdm
 logging.basicConfig(level=logging.DEBUG,
 format='%(asctime)s %(filename)s %(levelname)s %(message)s',
@@ -100,7 +103,7 @@ def train(feature_net, optimizer, loss_f, train_data, train_targets, batch_size_
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size_f, shuffle=True)
     train_losses = []
     num_correct = 0
-    for i, (data, label) in enumerate(train_dataloader):
+    for i, (data, label) in tqdm(enumerate(train_dataloader)):
         data = data.to(torch.float32).to(device)
         label = label.to(torch.float32).to(device)
         y_pred, _ = feature_net(data)
@@ -190,7 +193,7 @@ if __name__ == "__main__":
     parser.add_argument("-g", type=str, help="GPU number to use, set '-1' to use CPU", default=-1)
     args = parser.parse_args()
     args.c = "./config/ISRUC.config"
-    args.g = "0"
+    args.g = "-1"
     # Path, cfgFeature, _, _ = ReadConfig(args.c)
     Path, cfgFeature,_ = ReadConfig(args.c)
 
@@ -243,8 +246,15 @@ if __name__ == "__main__":
         print('Fold #', i)
 
 
-        feature_net = MLP_Mixer(image_size=3000, patch_size=100, dim=256, num_classes=5, num_blocks=6, token_dim=30,
-        channel_dim=256).to(device)
+        feature_net = featureNetLSTM().to(device)
+
+
+        # feature_net = vggTransformer().to(device)
+        #
+        # feature_net = ConvLSTM(img_size=100, input_dim=1, hidden_dim=16, kernel_size=3, cnn_dropout=0.2,
+        #                        rnn_dropout=0.2, batch_first=True, bias=True, bidirectional=False)
+        # feature_net = MLP_Mixer(image_size=3000, patch_size=100, dim=256, num_classes=5, num_blocks=6, token_dim=30,
+        # channel_dim=256).to(device)
         optimizer = get_optimizer(feature_net, optimizer_f, learn_rate_f)
         # loss_f = torch.nn.CrossEntropyLoss()
         loss_f = torch.nn.BCELoss()
