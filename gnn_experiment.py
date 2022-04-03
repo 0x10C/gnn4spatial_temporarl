@@ -337,6 +337,7 @@ if __name__ == '__main__':
         "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
         "feature": './output/Feature_1.npz'
     }
+    args.case_name = "kernel"
     transform(path, args.case_name)
     run(path['save'],args.case_name)
     train_model(args)

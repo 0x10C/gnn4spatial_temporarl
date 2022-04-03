@@ -5,11 +5,12 @@ from scipy.sparse import csr_matrix
 from tqdm import tqdm
 from scipy.stats import pearsonr
 from scipy import signal
+import numpy as np
 
 class Adjaency_Generator:
 
     def __init__(self,mode = "plv",threshold = None):
-        if mode not in ["distance","knn","pcc","plv"]:
+        if mode not in ["distance","knn","pcc","plv","kernel"]:
             assert 0,"Not supporting adjacency generate mode"
         self.mode = mode
         if threshold:
@@ -24,7 +25,8 @@ class Adjaency_Generator:
             process_adj_pcc(feature, path)
         if self.mode == "plv":
             process_adj_plv(feature, path)
-
+        if self.mode == "kernel":
+            process_adj_kernel(feature,path)
 
 def preprocess_label(path):
     """
@@ -59,6 +61,43 @@ def preprocess_feature(path):
     pickle.dump(rlt,output)
 
     return rlt
+
+def process_adj_kernel(feature,path):
+    adj_generate = kernel_adj(0.5)
+    rlt = []
+    for i in tqdm(range(len(feature))):
+        graph = feature[i]
+        rlt.append(adj_generate.create_adjacency(graph))
+    output = open(path['save']+"adjacency_matrices.pkl","wb")
+    pickle.dump(rlt,output)
+    print("finished adj")
+
+
+
+class kernel_adj:
+    def __init__(self,lamda):
+        self.lamda = lamda
+
+    def l2_norm(self,a,b):
+        a_num = a.shape[0]
+        b_num = b.shape[0]
+        rlt = [np.linalg.norm(a[i,:]-b[j,:]) for i in range(a_num) for j in range(b_num)]
+        return np.array(rlt).reshape(a_num,b_num)
+
+    def l1_norm(self,a,b):
+        a_num = a.shape[0]
+        b_num = b.shape[0]
+        rlt = [np.sum(np.abs(a[i,:]-b[j,:])) for i in range(a_num) for j in range(b_num)]
+        return np.array(rlt).reshape(a_num,b_num)
+
+    def create_adjacency(self,graph):
+        gamma = graph.shape[1]
+        sim_mt_l2 = self.l2_norm(graph,graph)
+        sim_mt_l1 = self.l1_norm(graph,graph)
+        rbf_sim = np.exp(-1/gamma*sim_mt_l2)
+        laplacian_sim = np.exp(-1/gamma*sim_mt_l1)
+        sim_mt = self.lamda*rbf_sim+(1-self.lamda)*laplacian_sim
+        return csr_matrix(sim_mt)
 
 def process_adj(length, path):
     """
