@@ -21,7 +21,7 @@ def add_args(parser):
     """
     # Training settings
 
-    parser.add_argument('--case_name', type=str, default='pcc', help='Dataset used for training')
+    parser.add_argument('--case_name', type=str, default='knn', help='Dataset used for training')
 
     parser.add_argument('--data_dir', type=str, default="./result/ISRUC_S3_pcc/", help='Data directory')
 
@@ -331,11 +331,11 @@ if __name__ == '__main__':
     args = add_args(parser)
 
     path = {
-        'data': "./data/ISRUC_S3/ISRUC_S3.npz",
+        'data': "./output/Feature_seizure.npz",
         'save': args.data_dir,
         "cheb_k": 3,
         "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
-        "feature": './output/Feature_1.npz'
+        "feature": './output/new.npz'
     }
     args.case_name = "kernel"
     transform(path, args.case_name)

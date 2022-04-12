@@ -27,6 +27,11 @@ def ReadConfig(configfile):
     # cfgModel = config['model']
     return cfgPath, cfgFeat, cfgTrain
 
+def get_data(train_features, val_faeature ,train_targets,val_targets):
+    train_features[-900:] = val_faeature[:900]
+    train_targets[-900:] = val_targets[:900]
+    return train_features, val_faeature ,train_targets,val_targets
+
 ##########################################################################################
 # Add context to the origin data and label ###############################################
 
