@@ -70,4 +70,13 @@ bash install_package.sh
   python fed_experiment.py --model gat --case_name pcc --data_dir ./result/ISRUC_S3_pcc  
 
   ```
+  
+## new data set 
+put data in ./data/ directory
+
+run train_feature_net_pytorch_new 
+RAM>16GB
+
+run gnn_experiment
+
 
