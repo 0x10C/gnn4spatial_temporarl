@@ -197,14 +197,14 @@ def calculate_loss(model, dataloader, batch_size, device, criterion, is_sage):
 
 
 
-def acc_f1(model, test_loader, device, is_sage):
+def acc_f1(model, test_loader, device, count,print_s,is_sage):
     model.eval()
     model.to(device)
 
     with torch.no_grad():
         y_pred = []
         y_true = []
-        
+
         if is_sage:
             for mol_idx, (forest, feature_matrix, label, mask) in enumerate(test_loader):
                 forest = [level.to(device=device, dtype=torch.long, non_blocking=True) for level in forest]
@@ -223,6 +223,9 @@ def acc_f1(model, test_loader, device, is_sage):
 
                 y_pred.append(nn.Sigmoid()(logits).cpu().numpy())
                 y_true.append(label.numpy())
+    if count < 15:
+        print("Batch:{},acc:{},f1:{},train_loss:{},test_loss:{}".format(count*100,print_s['acc'][count],print_s['f1'][count],\
+                                                                        print_s['train_loss'][count],print_s['test_loss'][count]))
 
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)

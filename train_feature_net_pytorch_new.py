@@ -218,10 +218,11 @@ if __name__ == "__main__":
 
         # get i th-fold data
         # train_data, train_targets, val_data, val_targets = DataGenerator.getFold(i)
-        train_data, train_targets, val_data, val_targets = DataGenerator.get_fea_label()
+        # train_data, train_targets, val_data, val_targets = DataGenerator.get_fea_label()
 
         best_acc = 0
-        for epoch in range(num_epochs_f):
+        for epoch in range(20):
+            train_data, train_targets, val_data, val_targets = DataGenerator.get_fea_label()
             train(feature_net, optimizer, loss_f, train_data, train_targets, batch_size_f, epoch)
             val_acc = valid(feature_net, loss_f, val_data, val_targets, batch_size_f, epoch)
 
@@ -238,7 +239,7 @@ if __name__ == "__main__":
                                                             "feature_net_best_acc_{}.pkl".format(i)), map_location=lambda storage, loc: storage))
 
         train_features, val_features = generate_feature(feature_net, train_data, val_data)
-        train_features, val_faeature ,train_targets,val_targets = get_data(train_features, val_faeature ,train_targets,val_targets)
+        train_features, val_features ,train_targets,val_targets = get_data(train_features, val_features ,train_targets,val_targets)
         logger.info(
             ('Save feature of Fold #' + str(i) + ' to' + Path['Save'] + 'Feature_' + str(
                 i) + '_pytorch_cnn_Mass.npz'))

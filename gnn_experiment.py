@@ -13,6 +13,7 @@ from utils import *
 from DataTransformer import transform
 from split_data import run
 import pandas as pd
+import  json
 
 def add_args(parser):
     """
@@ -135,7 +136,7 @@ def train_model(args):
     test_data_set = []
 
     feat_dim = 256
-    num_cats = 5
+    num_cats = 28
 
     print("Load: {}/{}".format(transformed_path, "train"))
     loaded_data = get_dataloader(transformed_path + "/" + "train",
@@ -213,6 +214,7 @@ def train_model(args):
     train_loss_list = []
     batch_list = []
 
+    rlt_dict = dict()
 
     for e in range(epochs):
         for mol_idxs in range(int(len(train_loader[0]) / batch_size)):
@@ -267,6 +269,8 @@ def train_model(args):
                 train_loss_list.append(float(participants_loss_train[0]))
                 batch_list.append(mol_idxs)
 
+
+
                 history_CM.append(cm)
 
                 if f1 > best_f1:
@@ -275,6 +279,9 @@ def train_model(args):
         print("", file=logFile)
         print()
     logFile.close()
+    rlt_dict=dict(acc = acc_list,f1 = f1_list,test_loss = test_loss_list,train_loss = train_loss_list)
+    with open("rlt.json","w") as fp:
+        fp.write(json.dumps(rlt_dict))
     np.save(path + "/single_" + args.model + "/history_CM", np.array(history_CM))
     np.save(path + "/single_" + args.model + "/history_test",
             np.array([loss.cpu().detach().numpy() for loss in history_test]))
@@ -331,11 +338,11 @@ if __name__ == '__main__':
     args = add_args(parser)
 
     path = {
-        'data': "./output/Feature_seizure.npz",
+        'data': "./data/ISRUC_S3/ISRUC_S3.npz",
         'save': args.data_dir,
         "cheb_k": 3,
         "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
-        "feature": './output/new.npz'
+        "feature": './output/Feature_1.npz'
     }
     args.case_name = "kernel"
     transform(path, args.case_name)

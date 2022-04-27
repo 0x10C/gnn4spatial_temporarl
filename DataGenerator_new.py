@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import signal
+from copy import deepcopy
 
 class kFoldGenerator():
     '''
@@ -107,5 +108,5 @@ class UCIDataGenerator():
         self.val_data = signal.resample(self.val_data, 3000, axis=1).transpose(0, 2, 1)
 
 
-    def get_fea_label(self,):
-        return self.train_data, self.train_targets, self.val_data, self.val_targets
+    def get_fea_label(self):
+        return deepcopy(self.train_data), deepcopy(self.train_targets), deepcopy(self.val_data), deepcopy(self.val_targets)

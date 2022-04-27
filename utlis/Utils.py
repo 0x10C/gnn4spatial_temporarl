@@ -27,10 +27,23 @@ def ReadConfig(configfile):
     # cfgModel = config['model']
     return cfgPath, cfgFeat, cfgTrain
 
-def get_data(train_features, val_faeature ,train_targets,val_targets):
-    train_features[-900:] = val_faeature[:900]
+def get_data(train_features, val_feature ,train_targets,val_targets):
+    train_features[-900:] = val_feature[:900]
     train_targets[-900:] = val_targets[:900]
-    return train_features, val_faeature ,train_targets,val_targets
+    return train_features, val_feature ,train_targets,val_targets
+
+def dir_delete(dir):
+    files=os.listdir(dir)
+    os.chdir(dir)#进入指定目录
+    #遍历删除指定目录下的文件
+    for file in files:
+        os.remove(file)
+        print(file,"删除成功")
+    os.chdir("..")
+    # print(os.path)
+    os.remove(dir)
+    print(dir,"删除成功")
+
 
 ##########################################################################################
 # Add context to the origin data and label ###############################################
