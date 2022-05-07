@@ -56,7 +56,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', metavar="WD", type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=5, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=10, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--frequency_of_the_test', type=int, default=100, help='How frequently to run eval')
@@ -86,7 +86,7 @@ def train_model(args,path):
 
     frequency_of_the_test = args.frequency_of_the_test
 
-    compact = (args.model == 'graphsage')
+    compact = (args.model in ['graphsage','gps'])
 
     # 加载数据
     train_data_set = []
@@ -98,7 +98,7 @@ def train_model(args,path):
                                  normalize_features=False,
                                  normalize_adj=False)
     feat_dim = 256
-    num_cats = 28
+    num_cats = 5
 
     train_data_set.append(loaded_data)
 
@@ -129,10 +129,6 @@ def train_model(args,path):
     train_loader = train_data_set
     test_loader = test_data_set
 
-    with open("rlt.json", "r") as dp:
-        rlt = json.loads(dp.read())
-    count = 0
-
     history_train = []
     history_test = []
     history_CM = []
@@ -148,6 +144,7 @@ def train_model(args,path):
 
 
     for e in range(epochs):
+        print(e)
         for mol_idxs in range(int(len(train_loader[0]) / batch_size)):
             participants_loss_train = []
 
@@ -168,7 +165,6 @@ def train_model(args,path):
             history_train.append(batch_loss)
 
             if mol_idxs % frequency_of_the_test == 0 or mol_idxs == int(len(train_loader[0]) / batch_size) - 1:
-                count += 1
                 global_loss_test = calculate_loss(model=global_model,
                                                   dataloader=iter(test_loader[0]),
                                                   batch_size=batch_size * 8,
@@ -177,8 +173,8 @@ def train_model(args,path):
                                                   is_sage=compact)
                 acc, f1, cm = acc_f1(global_model, iter(test_loader[0]), device,is_sage=compact)
 
-
-
+                if f1 >best_f1:
+                    best_f1 = f1
                 history_test.append(global_loss_test)
 
                 history_test.append(global_loss_test)
@@ -193,21 +189,7 @@ def train_model(args,path):
 
                 history_CM.append(cm)
 
-                if f1 > best_f1:
-                    best_model = global_model
-                    best_f1 = f1
-        print()
-    rlt_dict=dict(acc = acc_list,f1 = f1_list,test_loss = test_loss_list,train_loss = train_loss_list)
-    with open("rlt.json","w") as fp:
-        fp.write(json.dumps(rlt_dict))
-
-    best_model.eval()
-    best_model.to(device)
-
-
-    draw_df = pd.DataFrame(dict(batch = batch_list,acc = acc_list,train_loss = train_loss_list,test_loss = test_loss_list,f1 = f1_list))
-    draw_df.to_csv("draw_data/{}_{}.csv".format(args.case_name,args.model),index=False)
-
+    return best_f1
 
 def get_raw_data(path):
 
@@ -226,23 +208,12 @@ def save_data(feature,label,adj_matrices,path):
     output = open(path+"adjacency_matrices.pkl","wb")
     pickle.dump(adj_matrices,output)
 
-path = {
-        'data': "./output/Feature_seizure.npz",
-        "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
-        'save': "./result/"
-    }
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    args = add_args(parser)
-
-
-    args.case_name = "pcc"
-
-    mode = "pcc"
+def run_model(path,args):
     train_feature, val_feature, train_targets, val_targets = get_raw_data(path)
     label = np.concatenate((train_targets, val_targets))
     feature = np.concatenate((train_feature, val_feature))
     feature = [ele for ele in feature]
+    mode = args.case_name
     adj_generator = Adjaency_Generator(mode)
     if not os.path.exists(path['save']):
         os.makedirs("result")
@@ -254,27 +225,18 @@ if __name__ == '__main__':
     output = open(path['save'] + "feature_matrices.pkl", "wb")
     pickle.dump(feature, output)
 
-    adj_generator.get_adj(5000, feature, path)
+    adj_generator.get_adj(len(feature), feature, path)
 
     with open(path['save'] + 'adjacency_matrices.pkl', 'rb') as f:
         adj_matrices = pickle.load(f)
 
-    train_index = int(len(feature) * 0.9)
+    train_index = int(len(feature) * 0.5)
     shuffle = [i for i in range(len(feature))]
     random.shuffle(shuffle)
 
     feature = np.array(feature)
     adj_matrices = np.array(adj_matrices)
     label = np.array(label)
-
-    fake_label = np.random.choice(list(range(28)), 15, replace=False)
-    rlt = []
-    for ele in fake_label:
-        temp = np.zeros(28)
-        temp[ele] = 1.0
-        temp_list = [temp for i in range(50)]
-        rlt.extend(temp_list)
-    label[-750:] = rlt
 
     train_data = feature[shuffle[:train_index]]
     train_label = label[shuffle[:train_index]]
@@ -290,4 +252,32 @@ if __name__ == '__main__':
         os.makedirs(path['save'] + "test/")
     save_data(test_data, test_label, test_adj, path['save'] + "test/")
 
-    train_model(args,path)
+    best = train_model(args,path)
+    return  best
+
+# path = {
+#         'data': "./output/Feature_seizure.npz",
+#         "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
+#         'save': "./result/"
+#     }
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    args = add_args(parser)
+
+    rlt = dict()
+    for data in ['CNN', 'convlstm', 'lstm', 'mlpMixer', 'vggTransformer']:
+        for case_name in ['knn','distance','pcc','plv']:
+            for model in ['gcn','graphsage','gat','gcn']:
+                key = case_name+"_"+model+"_"+data
+                print(key)
+                path = {
+                        'data': "./output/feature_net/Feature_2_pytorch_{}.npz".format(data),
+                        "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
+                        'save': "./result/"
+                    }
+                rlt[key] = run_model(path,args)
+                print(rlt)
+    print(rlt)
+    with open("compare_experiment_rlt.json","w") as fp:
+        fp.write(json.dumps(rlt))
+

@@ -64,10 +64,10 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', metavar="WD", type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=5, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=10, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--frequency_of_the_test', type=int, default=100, help='How frequently to run eval')
+    parser.add_argument('--frequency_of_the_test', type=int, default=200, help='How frequently to run eval')
 
     parser.add_argument('--device', type=str, default="cuda:0", metavar="DV", help='gpu device for training')
 
@@ -331,9 +331,28 @@ def train_model(args):
     AllPred = np.argmax(y_pred, axis=1)
     AllTrue = np.argmax(y_true, axis=1)
     PrintScore(AllTrue, AllPred, savePath=path + "/single_" + args.model + "/")
+    return best_f1
 
 
 if __name__ == '__main__':
+    # parser = argparse.ArgumentParser()
+    # args = add_args(parser)
+    #
+    # path = {
+    #     'data': "./data/ISRUC_S3/ISRUC_S3.npz",
+    #     'save': args.data_dir,
+    #     "cheb_k": 3,
+    #     "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
+    #     "feature": './output/Feature_1.npz'
+    # }
+    # args.case_name = "knn"
+    # args.model = "graphsage"
+    # transform(path, args.case_name)
+    # run(path['save'],args.case_name)
+    # train_model(args)
+
+
+
     parser = argparse.ArgumentParser()
     args = add_args(parser)
 
@@ -342,12 +361,22 @@ if __name__ == '__main__':
         'save': args.data_dir,
         "cheb_k": 3,
         "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
-        "feature": './output/Feature_1.npz'
+        "feature": './output/feature_net/Feature_0_pytorch_cnn.npz'
     }
-    args.case_name = "kernel"
-    transform(path, args.case_name)
-    run(path['save'],args.case_name)
-    train_model(args)
+    rlt = dict()
+    for case_name in ['knn','pcc','plv','distance']:
+        for model in ['gcn','gat']:
+            key = case_name+"_"+model+"_cnn"
+            args.case_name = case_name
+            args.model = model
+            transform(path, args.case_name)
+            run(path['save'],args.case_name)
+            rlt[key] = train_model(args)
+    with open("{}.json".format(key),"w") as fp:
+        fp.write(json.dumps(rlt))
+
+
+
 
     # python fed_experiment.py --model gat --case_name knn --data_dir ./result/ISRUC_S3_knn
     # python fed_experiment.py --model gcn --case_name knn --data_dir ./result/ISRUC_S3_knn

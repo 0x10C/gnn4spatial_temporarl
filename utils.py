@@ -12,6 +12,8 @@ import torch.utils.data as data
 from GCN_model.model import GAT, GCN, Graphsage 
 from GCN_model.utlis.datasets import MoleculesDataset
 from GCN_model.utlis.utils import *
+from GCN_model.model.gps_model import GpsClassification
+
 
 def random_split_mask(total_length, mask_numb):
     index = np.arange(total_length)
@@ -121,6 +123,10 @@ def get_model(args, feat_dim, num_cats):
     elif args.model == 'graphsage':
         model = Graphsage.GraphSageClassification(feat_dim, args.hidden_size, args.node_embedding_dim, args.dropout,
                                 args.readout_hidden_dim, args.graph_embedding_dim, num_cats)
+    elif args.model == "gps":
+        model = GpsClassification(feat_dim, args.hidden_size, args.node_embedding_dim, args.dropout,
+                                args.readout_hidden_dim, args.graph_embedding_dim, num_cats)
+
     else:
         raise Exception('No such model')
     
@@ -197,7 +203,9 @@ def calculate_loss(model, dataloader, batch_size, device, criterion, is_sage):
 
 
 
-def acc_f1(model, test_loader, device, count,print_s,is_sage):
+# def acc_f1(model, test_loader, device, count,print_s,is_sage):
+
+def acc_f1(model, test_loader, device,is_sage):
     model.eval()
     model.to(device)
 
@@ -223,9 +231,9 @@ def acc_f1(model, test_loader, device, count,print_s,is_sage):
 
                 y_pred.append(nn.Sigmoid()(logits).cpu().numpy())
                 y_true.append(label.numpy())
-    if count < 15:
-        print("Batch:{},acc:{},f1:{},train_loss:{},test_loss:{}".format(count*100,print_s['acc'][count],print_s['f1'][count],\
-                                                                        print_s['train_loss'][count],print_s['test_loss'][count]))
+    # if count < 15:
+    #     print("Batch:{},acc:{},f1:{},train_loss:{},test_loss:{}".format(count*100,print_s['acc'][count],print_s['f1'][count],\
+    #                                                                     print_s['train_loss'][count],print_s['test_loss'][count]))
 
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
