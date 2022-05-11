@@ -172,7 +172,7 @@ def train_model(args,path):
                                                   criterion=criterion,
                                                   is_sage=compact)
                 acc, f1, cm = acc_f1(global_model, iter(test_loader[0]), device,is_sage=compact)
-
+                print("acc:{},f1:{}".format(acc,f1))
                 if f1 >best_f1:
                     best_f1 = f1
                 history_test.append(global_loss_test)
@@ -230,7 +230,7 @@ def run_model(path,args):
     with open(path['save'] + 'adjacency_matrices.pkl', 'rb') as f:
         adj_matrices = pickle.load(f)
 
-    train_index = int(len(feature) * 0.5)
+    train_index = int(len(feature) * 0.75)
     shuffle = [i for i in range(len(feature))]
     random.shuffle(shuffle)
 
@@ -265,19 +265,25 @@ if __name__ == '__main__':
     args = add_args(parser)
 
     rlt = dict()
-    for data in ['CNN', 'convlstm', 'lstm', 'mlpMixer', 'vggTransformer']:
-        for case_name in ['knn','distance','pcc','plv']:
-            for model in ['gcn','graphsage','gat','gcn']:
-                key = case_name+"_"+model+"_"+data
-                print(key)
-                path = {
-                        'data': "./output/feature_net/Feature_2_pytorch_{}.npz".format(data),
+    # for data in ['cnn', 'convlstm', 'lstm', 'mlpMixer', 'vggTransformer']:
+    #     for case_name in ['knn','distance','pcc','plv']:
+    #         for model in ['gcn','graphsage','gat','gcn']:
+    #             key = case_name+"_"+model+"_"+data
+    #             print(key)
+    #             path = {
+    #                     'data': "./output/feature_net/Feature_2_pytorch_{}.npz".format(data),
+    #                     "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
+    #                     'save': "./result/"
+    #                 }
+    #             rlt[key] = run_model(path,args)
+    #             print(rlt)
+    # print(rlt)
+    # with open("compare_experiment_rlt.json","w") as fp:
+    #     fp.write(json.dumps(rlt))
+
+    path = {
+                        'data': "./output/Feature_3.npz",
                         "disM": "./data/ISRUC_S3/DistanceMatrix.npy",
                         'save': "./result/"
                     }
-                rlt[key] = run_model(path,args)
-                print(rlt)
-    print(rlt)
-    with open("compare_experiment_rlt.json","w") as fp:
-        fp.write(json.dumps(rlt))
-
+    run_model(path,args)
